@@ -107,32 +107,47 @@ ax_geo = axes('Parent', p_geo, 'Units', 'normalized', 'Position', [0.05, 0.08, 0
     'Color', [1.0 1.0 1.0]);
 hold(ax_geo, 'on');
 
-% Dynamic Bedrock (Dark Slate)
-h_bedrock = patch(ax_geo, [0 10 10 0], [0 0 3 1], [0.22 0.24 0.27], 'EdgeColor', 'none');
+% Dynamic Bedrock Stratum (Deep Impermeable Foundation)
+h_bedrock = patch(ax_geo, [0 10 10 0], [0 0 2 0.5], [0.45 0.47 0.50], 'EdgeColor', [0.35 0.36 0.38], 'LineWidth', 1.2);
 
-% Dynamic Shear Slip Surface (Red dotted line)
+% Dynamic Curved Geotechnical Slip Surface (Bishop Circular Shear Arc)
 h_slip_line = plot(ax_geo, [0 10], [1 3], 'r:', 'LineWidth', 2.5);
 
-% Dynamic Overburden Soil Body (Changes color: Green -> Yellow -> Red, and physically displaces on failure!)
-h_soil = patch(ax_geo, [0 10 10 0], [1 3 6 2], [0.18 0.48 0.20], 'EdgeColor', [0.1 0.3 0.1], 'LineWidth', 1.5);
+% Dynamic Overburden Soil Body (Changes color: Green -> Yellow -> Red, slumps on failure)
+h_soil = patch(ax_geo, [0 10 10 0], [1 3 6 2], [0.22 0.54 0.25], 'EdgeColor', [0.15 0.38 0.18], 'LineWidth', 1.5);
 
-% Dynamic Groundwater Seepage / Pore Pressure Line (Cyan dotted)
-h_water_table = plot(ax_geo, [0 10], [0.8 2.0], 'c:', 'LineWidth', 2.5);
+% Lush Grass Vegetation Line along surface
+h_grass_line = plot(ax_geo, [0 10], [2 6], 'Color', [0.12 0.40 0.15], 'LineWidth', 2.5);
+
+% Dynamic Groundwater Phreatic Seepage Line (Cyan dotted)
+h_water_table = plot(ax_geo, [0 10], [0.8 2.0], 'Color', [0.05 0.65 0.95], 'LineStyle', ':', 'LineWidth', 2.5);
+
+% Tension Crown Crack (Appears at slope crest during slope cleavage / failure)
+h_crown_crack = plot(ax_geo, [8.8 8.9 8.7 8.9], [5.5 5.2 4.9 4.6], 'Color', [0.85 0.15 0.15], ...
+    'LineWidth', 2.5, 'Visible', 'off');
+
+% Stylized Pine Trees along the terrain
+tree_x = [3.0, 4.8, 6.8, 8.4];
+h_trees = gobjects(1, length(tree_x));
+for t_idx = 1:length(tree_x)
+    h_trees(t_idx) = plot(ax_geo, [tree_x(t_idx), tree_x(t_idx)], [4, 4.8], ...
+        'Color', [0.08 0.38 0.12], 'LineWidth', 3);
+end
+
+% Early Warning Telemetry Sensor Station on Slope
+h_sensor_tower = plot(ax_geo, 5.2, 4.5, '^', 'MarkerFaceColor', [0.1 0.4 0.8], ...
+    'MarkerEdgeColor', [0.05 0.2 0.5], 'MarkerSize', 8, 'LineWidth', 1.5);
 
 % Settlement and Infrastructure zone on slope
-h_surface_items = text(ax_geo, .5, 7.2, '[ SURFACE SETTLEMENT ZONE ]', ...
-    'Color', [0.05 0.25 0.08], ...
-    'FontSize', 11, ...
-    'FontWeight', 'bold', ...
-    'HorizontalAlignment', 'left', ...
-    'VerticalAlignment', 'middle');
+h_surface_items = text(ax_geo, 0.4, 7.1, '[ SURFACE SETTLEMENT ZONE ]', ...
+    'Color', [0.05 0.25 0.08], 'FontSize', 9.5, 'FontWeight', 'bold');
 
 % Catastrophic Slide Vector Arrow
 h_slide_arrow = annotation('arrow', [0.24 0.18], [0.42 0.34], 'Color', [1 0.2 0.2], 'LineWidth', 3.5, 'Visible', 'off');
 
 % Live Metric Badges on the Mountain Canvas
-txt_angle_overlay = text(ax_geo, 0.5, 6.8, 'Slope: 35°', 'Color', [0.15 0.15 0.25], 'FontSize', 10, 'FontWeight', 'bold');
-txt_fos_overlay = text(ax_geo, 0.5, 6.4, 'FoS: 1.82 (Safe)', 'Color', [0.10 0.50 0.20], 'FontSize', 10, 'FontWeight', 'bold');
+txt_angle_overlay = text(ax_geo, 0.4, 6.6, 'Slope: 35°', 'Color', [0.15 0.15 0.25], 'FontSize', 9.5, 'FontWeight', 'bold');
+txt_fos_overlay = text(ax_geo, 0.4, 6.1, 'FoS: 1.82 (Safe)', 'Color', [0.10 0.50 0.20], 'FontSize', 9.5, 'FontWeight', 'bold');
 
 xlim(ax_geo, [0 10]); ylim(ax_geo, [0 7.5]);
 ax_geo.XTick = []; ax_geo.YTick = [];
@@ -220,32 +235,53 @@ p_ctrl = uipanel('Parent', f, 'Units', 'normalized', 'Position', [0.015, 0.015, 
     'BackgroundColor', [0.96 0.90 0.78], 'ForegroundColor', [0.15 0.15 0.20], ...
     'Title', 'INTERACTIVE CONTROLS & LIVE DIGITAL TELEMETRY', 'FontWeight', 'bold');
 
-% Slider 1: Rainfall (0 to 100 mm/h)
-uicontrol('Style', 'text', 'Parent', p_ctrl, 'Units', 'normalized', 'Position', [0.02, 0.62, 0.18, 0.28], ...
-    'String', 'Rainfall Intensity (mm/h):', 'ForegroundColor', [0.05 0.30 0.65], ...
-    'BackgroundColor', [0.96 0.90 0.78], 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
-lbl_rain_val = uicontrol('Style', 'text', 'Parent', p_ctrl, 'Units', 'normalized', 'Position', [0.20, 0.62, 0.08, 0.28], ...
-    'String', '0 mm/h', 'ForegroundColor', [0.15 0.15 0.20], 'BackgroundColor', [0.96 0.90 0.78], 'FontWeight', 'bold');
-sld_rain = uicontrol('Style', 'slider', 'Parent', p_ctrl, 'Units', 'normalized', 'Position', [0.02, 0.24, 0.26, 0.34], ...
+% Card 1: Rainfall (0 to 100 mm/h)
+card1 = uipanel('Parent', p_ctrl, 'Units', 'normalized', 'Position', [0.020, 0.08, 0.306, 0.84], ...
+    'BackgroundColor', [1 1 1], 'HighlightColor', [0.88 0.82 0.70], 'BorderType', 'line');
+uicontrol('Style', 'text', 'Parent', card1, 'Units', 'normalized', 'Position', [0.05, 0.65, 0.58, 0.28], ...
+    'String', 'Rainfall Intensity', 'ForegroundColor', [0.05 0.35 0.75], ...
+    'BackgroundColor', [1 1 1], 'FontWeight', 'bold', 'FontSize', 9.5, 'HorizontalAlignment', 'left');
+lbl_rain_val = uicontrol('Style', 'text', 'Parent', card1, 'Units', 'normalized', 'Position', [0.65, 0.65, 0.30, 0.28], ...
+    'String', '0 mm/h', 'ForegroundColor', [0.05 0.35 0.75], 'BackgroundColor', [0.93 0.95 0.99], ...
+    'FontWeight', 'bold', 'FontSize', 9.5);
+sld_rain = uicontrol('Style', 'slider', 'Parent', card1, 'Units', 'normalized', 'Position', [0.05, 0.26, 0.90, 0.32], ...
     'Min', 0, 'Max', 100, 'Value', 0, 'Callback', @(s,~) updateRain(s.Value));
+uicontrol('Style', 'text', 'Parent', card1, 'Units', 'normalized', 'Position', [0.05, 0.04, 0.40, 0.20], ...
+    'String', '0 mm/h (Dry)', 'ForegroundColor', [0.5 0.5 0.5], 'BackgroundColor', [1 1 1], 'FontSize', 7.5, 'HorizontalAlignment', 'left');
+uicontrol('Style', 'text', 'Parent', card1, 'Units', 'normalized', 'Position', [0.55, 0.04, 0.40, 0.20], ...
+    'String', '100 mm/h (Storm)', 'ForegroundColor', [0.5 0.5 0.5], 'BackgroundColor', [1 1 1], 'FontSize', 7.5, 'HorizontalAlignment', 'right');
 
-% Slider 2: Slope Angle (20 to 50 deg)
-uicontrol('Style', 'text', 'Parent', p_ctrl, 'Units', 'normalized', 'Position', [0.32, 0.62, 0.18, 0.28], ...
-    'String', 'Hillside Slope Angle:', 'ForegroundColor', [0.70 0.35 0.00], ...
-    'BackgroundColor', [0.96 0.90 0.78], 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
-lbl_slope_val = uicontrol('Style', 'text', 'Parent', p_ctrl, 'Units', 'normalized', 'Position', [0.50, 0.62, 0.08, 0.28], ...
-    'String', '35°', 'ForegroundColor', [0.15 0.15 0.20], 'BackgroundColor', [0.96 0.90 0.78], 'FontWeight', 'bold');
-sld_slope = uicontrol('Style', 'slider', 'Parent', p_ctrl, 'Units', 'normalized', 'Position', [0.32, 0.24, 0.26, 0.34], ...
+% Card 2: Hillside Slope Angle (20 to 50 deg)
+card2 = uipanel('Parent', p_ctrl, 'Units', 'normalized', 'Position', [0.346, 0.08, 0.306, 0.84], ...
+    'BackgroundColor', [1 1 1], 'HighlightColor', [0.88 0.82 0.70], 'BorderType', 'line');
+uicontrol('Style', 'text', 'Parent', card2, 'Units', 'normalized', 'Position', [0.05, 0.65, 0.60, 0.28], ...
+    'String', 'Hillside Slope Angle', 'ForegroundColor', [0.70 0.35 0.00], ...
+    'BackgroundColor', [1 1 1], 'FontWeight', 'bold', 'FontSize', 9.5, 'HorizontalAlignment', 'left');
+lbl_slope_val = uicontrol('Style', 'text', 'Parent', card2, 'Units', 'normalized', 'Position', [0.65, 0.65, 0.30, 0.28], ...
+    'String', '35°', 'ForegroundColor', [0.70 0.35 0.00], 'BackgroundColor', [0.99 0.96 0.91], ...
+    'FontWeight', 'bold', 'FontSize', 9.5);
+sld_slope = uicontrol('Style', 'slider', 'Parent', card2, 'Units', 'normalized', 'Position', [0.05, 0.26, 0.90, 0.32], ...
     'Min', 20, 'Max', 50, 'Value', 35, 'Callback', @(s,~) updateSlope(s.Value));
+uicontrol('Style', 'text', 'Parent', card2, 'Units', 'normalized', 'Position', [0.05, 0.04, 0.40, 0.20], ...
+    'String', '20° (Gentle)', 'ForegroundColor', [0.5 0.5 0.5], 'BackgroundColor', [1 1 1], 'FontSize', 7.5, 'HorizontalAlignment', 'left');
+uicontrol('Style', 'text', 'Parent', card2, 'Units', 'normalized', 'Position', [0.55, 0.04, 0.40, 0.20], ...
+    'String', '50° (Precipitous)', 'ForegroundColor', [0.5 0.5 0.5], 'BackgroundColor', [1 1 1], 'FontSize', 7.5, 'HorizontalAlignment', 'right');
 
-% Slider 3: Ground Vibration / Tremor (0 to 10 deg/h)
-uicontrol('Style', 'text', 'Parent', p_ctrl, 'Units', 'normalized', 'Position', [0.62, 0.62, 0.18, 0.28], ...
-    'String', 'Seismic / Ground Tremor:', 'ForegroundColor', [0.45 0.10 0.70], ...
-    'BackgroundColor', [0.96 0.90 0.78], 'FontWeight', 'bold', 'HorizontalAlignment', 'left');
-lbl_tremor_val = uicontrol('Style', 'text', 'Parent', p_ctrl, 'Units', 'normalized', 'Position', [0.80, 0.62, 0.08, 0.28], ...
-    'String', '0.0 deg/h', 'ForegroundColor', [0.15 0.15 0.20], 'BackgroundColor', [0.96 0.90 0.78], 'FontWeight', 'bold');
-sld_tremor = uicontrol('Style', 'slider', 'Parent', p_ctrl, 'Units', 'normalized', 'Position', [0.62, 0.24, 0.26, 0.34], ...
+% Card 3: Seismic / Ground Tremor (0 to 10 deg/h)
+card3 = uipanel('Parent', p_ctrl, 'Units', 'normalized', 'Position', [0.672, 0.08, 0.306, 0.84], ...
+    'BackgroundColor', [1 1 1], 'HighlightColor', [0.88 0.82 0.70], 'BorderType', 'line');
+uicontrol('Style', 'text', 'Parent', card3, 'Units', 'normalized', 'Position', [0.05, 0.65, 0.60, 0.28], ...
+    'String', 'Seismic / Tremor Rate', 'ForegroundColor', [0.45 0.10 0.70], ...
+    'BackgroundColor', [1 1 1], 'FontWeight', 'bold', 'FontSize', 9.5, 'HorizontalAlignment', 'left');
+lbl_tremor_val = uicontrol('Style', 'text', 'Parent', card3, 'Units', 'normalized', 'Position', [0.65, 0.65, 0.30, 0.28], ...
+    'String', '0.0 deg/h', 'ForegroundColor', [0.45 0.10 0.70], 'BackgroundColor', [0.97 0.93 0.99], ...
+    'FontWeight', 'bold', 'FontSize', 9.5);
+sld_tremor = uicontrol('Style', 'slider', 'Parent', card3, 'Units', 'normalized', 'Position', [0.05, 0.26, 0.90, 0.32], ...
     'Min', 0, 'Max', 10, 'Value', 0, 'Callback', @(s,~) updateTremor(s.Value));
+uicontrol('Style', 'text', 'Parent', card3, 'Units', 'normalized', 'Position', [0.05, 0.04, 0.40, 0.20], ...
+    'String', '0.0 (Quiescent)', 'ForegroundColor', [0.5 0.5 0.5], 'BackgroundColor', [1 1 1], 'FontSize', 7.5, 'HorizontalAlignment', 'left');
+uicontrol('Style', 'text', 'Parent', card3, 'Units', 'normalized', 'Position', [0.55, 0.04, 0.40, 0.20], ...
+    'String', '10.0 (Severe Tremor)', 'ForegroundColor', [0.5 0.5 0.5], 'BackgroundColor', [1 1 1], 'FontSize', 7.5, 'HorizontalAlignment', 'right');
 
 % -------------------------------------------------------------
 % REAL-TIME SIMULATION ENGINE (TIMER)
@@ -289,10 +325,11 @@ start(tmr);
             'Rainfall Intensity (mm/h) [10 to 120]:', ...
             'Storm Duration (Hours) [e.g. 1.0 to 8.0]:', ...
             'Hillside Slope Angle (degrees) [20 to 50]:', ...
-            'Antecedent Soil Moisture (%) [15 to 55]:'};
-        dlgtitle = 'Rainfall Event & Disaster Prediction Setup';
+            'Antecedent Soil Moisture (%) [15 to 55]:', ...
+            'Seismic / Ground Tremor (deg/h) [0.0 to 10.0]:'};
+        dlgtitle = 'Rainfall & Seismic Disaster Prediction Setup';
         dims = [1 55];
-        definput = {'75', '3.0', num2str(state.beta), sprintf('%.1f', state.moist * 100)};
+        definput = {'75', '3.0', num2str(state.beta), sprintf('%.1f', state.moist * 100), sprintf('%.1f', state.manual_tilt)};
         answer = inputdlg(prompt, dlgtitle, dims, definput);
         
         if isempty(answer)
@@ -303,8 +340,9 @@ start(tmr);
         dur_hr_in = str2double(answer{2});
         beta_in = str2double(answer{3});
         moist_in = str2double(answer{4});
+        tremor_in = str2double(answer{5});
         
-        if isnan(rain_in) || isnan(dur_hr_in) || isnan(beta_in) || isnan(moist_in)
+        if isnan(rain_in) || isnan(dur_hr_in) || isnan(beta_in) || isnan(moist_in) || isnan(tremor_in)
             errordlg('Please enter valid numerical values.', 'Input Error');
             return;
         end
@@ -314,11 +352,14 @@ start(tmr);
         dur_hr = max(0.2, min(12.0, dur_hr_in));
         beta_val = max(20, min(50, beta_in));
         moist_val = max(15, min(55, moist_in)) / 100;
+        tremor_val = max(0, min(10.0, tremor_in));
         
-        % Apply slope & moisture setup
+        % Apply slope, moisture & tremor setup
         updateSlope(beta_val);
         set(sld_slope, 'Value', beta_val);
         state.moist = moist_val;
+        updateTremor(tremor_val);
+        set(sld_tremor, 'Value', tremor_val);
         
         % ---------------------------------------------------------
         % INSTANT NUMERICAL PREDICTIVE FORECAST ENGINE (0-second wait)
@@ -334,8 +375,9 @@ start(tmr);
         
         gamma_s_val = 18; z_val = 1.5; phi_rad_val = deg2rad(30);
         beta_rad_val = deg2rad(beta_val);
-        norm_s = gamma_s_val * z_val * (cos(beta_rad_val))^2;
-        driv_s = gamma_s_val * z_val * sin(beta_rad_val) * cos(beta_rad_val);
+        k_h = tremor_val * 0.015; % Pseudostatic seismic acceleration factor
+        norm_s = gamma_s_val * z_val * (cos(beta_rad_val) - k_h * sin(beta_rad_val)) * cos(beta_rad_val);
+        driv_s = gamma_s_val * z_val * (sin(beta_rad_val) + k_h * cos(beta_rad_val)) * cos(beta_rad_val);
         
         for k = 1:(N_storm_steps + N_post_steps)
             curr_t_hr = (k / N_storm_steps) * dur_hr;
@@ -369,10 +411,21 @@ start(tmr);
                 min_proj_fos = k_fos;
             end
             
-            if time_to_advisory_hr < 0 && (k_fos <= 1.45 || sim_moist >= 0.24 || r_step >= 25)
+            % Kinematic ground tilt projection
+            if k_fos > 1.30
+                k_creep = 0.04;
+            elseif k_fos > 1.05
+                k_creep = (1.30 - k_fos) * 5.0;
+            else
+                k_creep = 1.5 + (1.05 - k_fos) * 18.0;
+            end
+            proj_tilt = min(10, k_creep + tremor_val);
+            
+            % Multi-tier trigger checks
+            if time_to_advisory_hr < 0 && (k_fos <= 1.45 || sim_moist >= 0.24 || r_step >= 25 || proj_tilt >= 0.6)
                 time_to_advisory_hr = curr_t_hr;
             end
-            if time_to_collapse_hr < 0 && k_fos <= 1.05
+            if time_to_collapse_hr < 0 && (k_fos <= 1.05 || (proj_tilt >= 2.2 && k_fos <= 1.25))
                 time_to_collapse_hr = curr_t_hr;
             end
         end
@@ -384,18 +437,19 @@ start(tmr);
                 '===============================================\n' ...
                 '     DISASTER EARLY WARNING: SLOPE FAILURE PREDICTED!\n' ...
                 '===============================================\n\n' ...
-                'EVENT DETAILS:\n' ...
+                'EVENT FORCING PARAMETERS:\n' ...
                 '  - Rainfall Rate: %.0f mm/h for %.1f Hours (Total: %.0f mm)\n' ...
-                '  - Terrain Slope: %.0f deg | Antecedent Moisture: %.1f%%\n\n' ...
+                '  - Terrain Slope: %.0f deg | Antecedent Moisture: %.1f%%\n' ...
+                '  - Seismic / Ground Tremor: %.1f deg/h (Inertial Stress Active)\n\n' ...
                 'PREDICTIVE IMPACT CONSEQUENCES:\n' ...
-                '  - Catastrophic Failure: Forecast at T + %.1f hr (%.0f mins into storm)\n' ...
+                '  - Catastrophic Failure: Forecast at T + %.1f hr (%.0f mins into event)\n' ...
                 '  - Advisory Stage (Yellow): Triggered at T + %.1f hr\n' ...
                 '  - Advance Evacuation Lead Time: %.0f minutes ahead of collapse\n' ...
                 '  - Critical Factor of Safety: FoS drops to %.2f (FAIL)\n' ...
                 '  - Peak Soil Saturation: %.1f%% (Pore Pressure: %.1f kPa)\n\n' ...
                 'ACTION MANDATE: EVACUATION ORDER RECOMMENDED.\n\n' ...
                 'Press OK to begin time-accelerated playback (~15 seconds on graphs).'], ...
-                rain_val, dur_hr, rain_val * dur_hr, beta_val, moist_val*100, ...
+                rain_val, dur_hr, rain_val * dur_hr, beta_val, moist_val*100, tremor_val, ...
                 time_to_collapse_hr, time_to_collapse_hr*60, time_to_advisory_hr, ...
                 lead_time_min, min_proj_fos, max_proj_moist*100, max_proj_u);
             helpdlg(report_msg, 'DISASTER PREDICTION REPORT');
@@ -404,16 +458,17 @@ start(tmr);
                 '===============================================\n' ...
                 '       PREDICTIVE FORECAST: SLOPE REMAINS STABLE\n' ...
                 '===============================================\n\n' ...
-                'EVENT DETAILS:\n' ...
+                'EVENT FORCING PARAMETERS:\n' ...
                 '  - Rainfall Rate: %.0f mm/h for %.1f Hours\n' ...
-                '  - Terrain Slope: %.0f deg | Antecedent Moisture: %.1f%%\n\n' ...
+                '  - Terrain Slope: %.0f deg | Antecedent Moisture: %.1f%%\n' ...
+                '  - Seismic / Ground Tremor: %.1f deg/h\n\n' ...
                 'PREDICTIVE IMPACT CONSEQUENCES:\n' ...
-                '  - Slope Stability: Stable throughout event\n' ...
+                '  - Slope Stability: Stable throughout event horizon\n' ...
                 '  - Minimum Factor of Safety: FoS = %.2f (Above critical 1.0)\n' ...
                 '  - Peak Soil Saturation: %.1f%% (Pore Pressure: %.1f kPa)\n\n' ...
                 'ACTION MANDATE: CONTINUED ROUTINE MONITORING.\n\n' ...
                 'Press OK to begin time-accelerated playback (~15 seconds on graphs).'], ...
-                rain_val, dur_hr, beta_val, moist_val*100, min_proj_fos, max_proj_moist*100, max_proj_u);
+                rain_val, dur_hr, beta_val, moist_val*100, tremor_val, min_proj_fos, max_proj_moist*100, max_proj_u);
             helpdlg(report_msg, 'DISASTER PREDICTION REPORT');
         end
         
@@ -434,18 +489,64 @@ start(tmr);
 
     % Dynamically updates the physical mountain visual based on slope angle beta
     function updateMountainGeometry()
-        slope_h = 1 + 6 * tan(deg2rad(state.beta)) / tan(deg2rad(50));
-        % Bedrock points
-        set(h_bedrock, 'XData', [0 10 10 0], 'YData', [0 0 slope_h*0.5 slope_h*0.2]);
-        % Slip plane line
-        set(h_slip_line, 'XData', [0 10], 'YData', [slope_h*0.2 slope_h*0.5]);
-        % Soil points (including slip displacement if failed)
-        off_x = state.slip_offset;
+        x_m = linspace(0, 10, 60);
+        H_crest = 2.2 + 4.8 * tan(deg2rad(state.beta)) / tan(deg2rad(50));
+        
+        % Bedrock stratum (impermeable geological foundation)
+        y_bed = 0.5 + 0.12 * sin(x_m * 0.7) + (H_crest * 0.38) * (x_m / 10).^1.25;
+        set(h_bedrock, 'XData', [x_m, 10, 0], 'YData', [y_bed, 0, 0]);
+        
+        % Circular Bishop shear slip surface
+        arc_dip = 0.65 * sin(pi * x_m / 10);
+        y_slip = y_bed + 0.35 + arc_dip;
+        set(h_slip_line, 'XData', x_m, 'YData', y_slip);
+        
+        % Smooth sigmoidal mountain surface profile
+        s_curve = 0.5 * (1 + tanh((x_m - 4.2) / 2.2));
+        y_surf = 1.0 + (H_crest - 1.0) * s_curve + 0.06 * sin(x_m * 1.5);
+        
+        % Dynamic physical slide offset on failure
+        off_x = -state.slip_offset * 0.8;
         off_y = -state.slip_offset * 0.4;
-        set(h_soil, 'XData', [0+off_x 10+off_x 10+off_x 0+off_x], ...
-            'YData', [slope_h*0.2+off_y slope_h*0.5+off_y slope_h+off_y slope_h*0.4+off_y]);
+        
+        x_soil_top = x_m + off_x;
+        y_soil_top = y_surf + off_y;
+        x_soil_bot = fliplr(x_m + off_x);
+        y_soil_bot = fliplr(y_slip + off_y);
+        
+        set(h_soil, 'XData', [x_soil_top, x_soil_bot], 'YData', [y_soil_top, y_soil_bot]);
+        set(h_grass_line, 'XData', x_soil_top, 'YData', y_soil_top);
+        
+        % Groundwater phreatic surface
+        water_h = max(0, (state.moist - 0.18) * 3.8);
+        y_water = y_slip + water_h * (1 - 0.25 * (x_m / 10));
+        set(h_water_table, 'XData', x_m, 'YData', y_water);
+        
+        % Update trees along slope (tilt forward during slope slip)
+        for t_i = 1:length(tree_x)
+            t_x0 = tree_x(t_i);
+            s_val = 0.5 * (1 + tanh((t_x0 - 4.2) / 2.2));
+            t_y0 = 1.0 + (H_crest - 1.0) * s_val + off_y;
+            t_xtree = t_x0 + off_x;
+            tilt_lean = state.slip_offset * 0.35;
+            set(h_trees(t_i), 'XData', [t_xtree, t_xtree - tilt_lean], 'YData', [t_y0, t_y0 + 0.55]);
+        end
+        
+        % Update sensor tower position
+        s_val_mast = 0.5 * (1 + tanh((5.2 - 4.2) / 2.2));
+        mast_y = 1.0 + (H_crest - 1.0) * s_val_mast + off_y;
+        set(h_sensor_tower, 'XData', 5.2 + off_x, 'YData', mast_y + 0.15);
+        
+        % Tension crack visibility at crown
+        if state.slip_offset > 0.08
+            crack_x = 8.5 + [0, 0.08, -0.06, 0.04];
+            crack_y = H_crest - [0.1, 0.45, 0.8, 1.1];
+            set(h_crown_crack, 'XData', crack_x, 'YData', crack_y, 'Visible', 'on');
+        else
+            set(h_crown_crack, 'Visible', 'off');
+        end
+        
         set(txt_angle_overlay, 'String', sprintf('Slope: %.0f°', state.beta));
-
     end
 
     % Main Simulation Step (Every 0.2s)
@@ -482,13 +583,14 @@ start(tmr);
             state.pore_pressure = 0;
         end
         
-        % 2. Geotechnical Stability (Factor of Safety)
+        % 2. Geotechnical Stability (Factor of Safety with Pseudostatic Tremor Factor)
         gamma_s = 18; z = 1.5; phi_rad = deg2rad(30);
         beta_rad = deg2rad(state.beta);
-        normal_stress = gamma_s * z * (cos(beta_rad))^2;
+        k_h = state.manual_tilt * 0.015; % Pseudostatic seismic acceleration factor
+        normal_stress = gamma_s * z * (cos(beta_rad) - k_h * sin(beta_rad)) * cos(beta_rad);
         eff_stress = max(normal_stress - state.pore_pressure, 0.05);
         resisting = state.c_prime + eff_stress * tan(phi_rad);
-        driving = gamma_s * z * sin(beta_rad) * cos(beta_rad);
+        driving = gamma_s * z * (sin(beta_rad) + k_h * cos(beta_rad)) * cos(beta_rad);
         
         state.prev_fos = state.fos;
         state.fos = max(0.2, resisting / max(driving, 0.001));
@@ -550,11 +652,9 @@ start(tmr);
         % Update Mountain Visuals
         updateMountainGeometry();
         
-        water_y = 1.0 + (state.moist - 0.18) * 5.0;
-        set(h_water_table, 'YData', [water_y*0.7, water_y*1.4]);
-        
         if state.alert_level == 2
-            set(h_soil, 'FaceColor', [0.85 0.15 0.15]); % Red
+            set(h_soil, 'FaceColor', [0.85 0.22 0.20], 'EdgeColor', [0.65 0.10 0.10]); % Red failure body
+            set(h_grass_line, 'Color', [0.75 0.15 0.15]);
             set(h_slide_arrow, 'Visible', 'on');
             set(h_surface_items, 'String', '[ CRITICAL DEFORMATION ZONE ]', 'Color', [0.80 0.05 0.05]);
             set(txt_fos_overlay, 'String', sprintf('FoS: %.2f (CRITICAL)', state.fos), 'Color', [0.80 0.05 0.05]);
@@ -566,12 +666,13 @@ start(tmr);
                     'BackgroundColor', [0.85 0.15 0.15]);
             end
         elseif state.alert_level == 1
-            set(h_soil, 'FaceColor', [0.85 0.65 0.15]); % Yellow
+            set(h_soil, 'FaceColor', [0.88 0.68 0.18], 'EdgeColor', [0.70 0.50 0.10]); % Amber advisory
+            set(h_grass_line, 'Color', [0.70 0.50 0.10]);
             set(h_slide_arrow, 'Visible', 'off');
             set(h_surface_items, ...
             'String', '[ ACTIVE SATURATION ZONE ]', ...
             'Color', [0.30 0.15 0.00], ...
-            'FontSize', 11, ...
+            'FontSize', 10, ...
             'FontWeight', 'bold');
             set(txt_fos_overlay, 'String', sprintf('FoS: %.2f (Degrading)', state.fos), 'Color', [0.65 0.35 0.00]);
             if state.storm_active
@@ -582,7 +683,8 @@ start(tmr);
                     'BackgroundColor', [0.85 0.55 0.05]);
             end
         else
-            set(h_soil, 'FaceColor', [0.18 0.48 0.20]); % Green
+            set(h_soil, 'FaceColor', [0.22 0.55 0.25], 'EdgeColor', [0.15 0.40 0.18]); % Lush green
+            set(h_grass_line, 'Color', [0.12 0.40 0.15]);
             set(h_slide_arrow, 'Visible', 'off');
             set(h_surface_items, 'String', '[ Surface Settlement Zone ]', 'Color', [0.10 0.40 0.15]);
             set(txt_fos_overlay, 'String', sprintf('FoS: %.2f (Stable)', state.fos), 'Color', [0.10 0.45 0.20]);
