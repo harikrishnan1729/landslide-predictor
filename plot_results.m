@@ -1,6 +1,14 @@
 %% Run and Plot Simulation Results for Landslide Early Warning System
 main;
-simOut = sim('lews_model');
+% Execute Simulink model if running in interactive desktop mode
+if usejava('desktop')
+    try
+        load_system('lews_model');
+        sim('lews_model', 'StopTime', '7200');
+    catch ME
+        fprintf('Note: Simulink execution note (%s).\n', ME.message);
+    end
+end
 
 % Extract logged signals from Dashboard Scope / simulation outputs
 fprintf('Plotting simulation results...\n');
@@ -25,13 +33,13 @@ grid on; legend({'Rain Rate', 'Soil Moisture'}, 'Location', 'northwest');
 % Subplot 2: Geotechnical Factor of Safety (FoS)
 subplot(4,1,2);
 % Recompute or extract FoS
-gamma_s = 18; gamma_w = 9.81; z = 1.5; beta_rad = deg2rad(35); phi_rad = deg2rad(30); c_prime = 12;
-u_arr = max(0, gamma_w * (soil_moisture - 0.35) * z * 2.5 + (rain_rate * 0.02));
-normal_stress = gamma_s * z * (cos(beta_rad))^2;
-eff_stress = max(normal_stress - u_arr, 0.1);
-resisting = c_prime + eff_stress * tan(phi_rad);
-driving = gamma_s * z * sin(beta_rad) * cos(beta_rad);
-fos_calc = resisting ./ driving;
+p_mod = lews_physics('params');
+u_arr = zeros(size(soil_moisture));
+fos_calc = zeros(size(soil_moisture));
+for k_idx = 1:length(t)
+    u_arr(k_idx) = lews_physics('pore_pressure', soil_moisture(k_idx), p_mod.theta_crit, p_mod.gamma_w, p_mod.z, p_mod.beta_deg);
+    fos_calc(k_idx) = lews_physics('fos', p_mod.beta_deg, p_mod.c_prime, p_mod.phi_deg, p_mod.gamma_s, p_mod.z, u_arr(k_idx), 0);
+end
 
 plot(t/60, fos_calc, 'Color', [0.85 0.32 0.09], 'LineWidth', 1.8);
 hold on;

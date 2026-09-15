@@ -2,12 +2,13 @@
 clear; clc; close all;
 fprintf('Initializing Landslide EWS parameters...\n');
 %% 1. Geotechnical & Slope Parameters (Physics Model)
-beta_deg = 42;        % Slope inclination angle in degrees
-c_prime  = 7;        % Effective soil cohesion in kPa
-phi_deg  = 30;        % Internal friction angle in degrees
-gamma_s  = 18;        % Soil unit weight in kN/m^3
-gamma_w  = 9.81;      % Water unit weight in kN/m^3
-z        = 1.5;       % Depth of potential slip surface in meters
+p = lews_physics('params');
+beta_deg = p.beta_deg;   % Slope inclination angle in degrees (35)
+c_prime  = p.c_prime;    % Effective soil cohesion in kPa (12)
+phi_deg  = p.phi_deg;    % Internal friction angle in degrees (30)
+gamma_s  = p.gamma_s;    % Soil unit weight in kN/m^3 (18)
+gamma_w  = p.gamma_w;    % Water unit weight in kN/m^3 (9.81)
+z        = p.z;          % Depth of potential slip surface in meters (1.5)
 %% 2. Synthetic Time Series Sensor Data (2-Hour Scenario)
 % Time vector: 0 to 7200 seconds (sample every 1 second)
 t = (0:1:7200)';
